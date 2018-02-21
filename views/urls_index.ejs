@@ -4,8 +4,17 @@
         <title>TinyApp</title>
     </head>
     <body>
-    <% include partials/_header.ejs %>
-        <li>shortened list</li>
-        <link>shorten
+        <% include partials/_header.ejs %>
+        <ul>
+            <% for (let key in urls) { %>
+                <li><%= key %> --> <%= urls[key] %>
+                    <form action="/urls/<%= key %>/delete" method="POST" style="display: inline;">
+                        <button type="submit">Delete</button>
+                    </form>
+                </li>
+            <% } %>
+        </ul>
+
+        
     </body>
 </html>
