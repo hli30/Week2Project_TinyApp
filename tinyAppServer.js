@@ -12,8 +12,8 @@ function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x100000).toString(16);
 }
 
+//Middleware setups
 app.use(bodyParser.urlencoded({extended: true}));
-
 app.set("view engine", "ejs");
 
 //Handle GET Requests
@@ -49,6 +49,11 @@ app.post("/urls", (req, res) => {
   urlDatabase[uid] = req.body.longURL;
   res.redirect(`http://localhost:8080/urls/${uid}`);
 });
+
+app.post("/urls/:id", (req, res) => {
+  urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect("/urls");
+})
 
 app.post('/urls/:id/delete', (req, res) => {
   delete urlDatabase[req.params.id];
