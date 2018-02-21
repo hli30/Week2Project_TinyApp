@@ -32,13 +32,14 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   let templateVars = { 
-    shortURL: req.params.id 
+    shortURL: req.params.id,
+    longURL: urlDatabase[req.params.id] //question: urlDatabase[this.shortURL] won't work?
   };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = req.params.shortURL;
+  let longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
