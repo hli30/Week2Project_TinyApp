@@ -16,6 +16,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
 
+//Handle GET Requests
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
@@ -29,9 +30,24 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+app.get("/urls/:id", (req, res) => {
+  let templateVars = { 
+    shortURL: req.params.id 
+  };
+  res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  let longURL = req.params.shortURL;
+  res.redirect(longURL);
+});
+
+//Handle POST Requests
 app.post("/urls", (req, res) => {
   console.log(req.body);  // debug statement to see POST parameters
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let uid = generateRandomString();
+  urlDatabase[uid] = req.body.longURL;
+  res.redirect(`http://localhost:8080/urls/${uid}`);
 });
 
 app.listen(PORT, () => {
