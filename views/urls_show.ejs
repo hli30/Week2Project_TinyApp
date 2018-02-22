@@ -6,9 +6,6 @@
     <body>
         <% include partials/_header.ejs %>
         <h1>ShortURL is : <%= shortURL %> </h1>
-        <!-- <ul>LongURL is : <%= longURL %></ul> -->
-        <!-- <p><a href= <% longURL %>>LongURL is : <%= longURL %></a></p> -->
-
         <form action="/urls/<%= shortURL %>" method="POST" style="display: inline;">
             <input id="longURL" type="text" name="longURL" placeholder="http://">
             <input type="submit" value="Update">
