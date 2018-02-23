@@ -1,8 +1,11 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+
 
 const urlDatabase = {
   "b2xVn2": {
@@ -17,7 +20,7 @@ const urlDatabase = {
   }
 };
 
-Object.keys(urlDatabase)
+// Object.keys(urlDatabase)
 
 // Object.keys --> map --> filter (reduce)
 
@@ -38,19 +41,30 @@ function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x100000).toString(16);
 }
 
+function urlsForUser(id) {
+  let urlsForCurrentUser = [];
+  for(let key in urlDatabase) {
+    if(id === urlDatabase[key].userID) {
+      urlsForCurrentUser.push(key);
+    }
+  }
+  return urlsForCurrentUser;
+}
+
 //Middleware setups
+app.set("view engine", "ejs");
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
-app.set("view engine", "ejs");
 
 /*****
- * Handle Get Requests
+ * Handle GET Requests
  *****/
 //Route: home page
 app.get("/urls", (req, res) => {
-  let templateVars = { 
+  let templateVars = {
     urls: urlDatabase,
-    user: users[req.cookies["user_id"]]
+    user: users[req.cookies["user_id"]],
+    currentUserURLs: urlsForUser(req.cookies["user_id"])
   };
   res.render("urls_index", templateVars);
 });
@@ -58,11 +72,9 @@ app.get("/urls", (req, res) => {
 //Route: create new page
 app.get("/urls/new", (req, res) => {
   if(!users[req.cookies["user_id"]]){
-    console.log("redirected to login");
     res.redirect("/login");
   } else {
     let templateVars = { user: users[req.cookies["user_id"]] }
-    console.log("rendered new page");
     res.render("urls_new", templateVars);
   }
 });
@@ -85,7 +97,7 @@ app.get("/register", (req, res) => {
 //Route: login page
 app.get("/login", (req, res) => {
   res.render("urls_login");
-})
+});
 
 //Redirect: to actual page (longURL)
 app.get("/u/:shortURL", (req, res) => {
@@ -102,7 +114,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[uid] = {
     shortURL: uid,
     longURL: req.body.longURL,
-    userID: ""
+    userID: req.cookies["user_id"]
   }
   res.redirect("/urls");
 });
@@ -132,7 +144,7 @@ app.post("/login", (req, res) => {
   if(!currentUser) {
     res.status(403).send("Email Doesn't Exist!"); 
   } else {
-    if(currentUser.password === req.body.password){
+    if(bcrypt.compareSync(req.body.password, currentUser.password)){
       res.cookie("user_id", currentUser.id);
       res.redirect("/urls");
     }
@@ -159,12 +171,14 @@ app.post("/register", (req, res) => {
       res.status(400).send("Duplicate Email!");
     }
   }
-  
+
   let userID = generateRandomString();
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+
   users[userID] = {
     id: userID,
     email: req.body.email,
-    password: req.body.password
+    password: hashedPassword
   }
   res.cookie("user_id", userID);
   res.redirect("/urls");
