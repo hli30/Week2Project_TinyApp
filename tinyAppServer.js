@@ -5,9 +5,21 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    shortURL: "b2xVn2",
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "user2RandomID"
+  },
+  "9sm5xK": {
+    shortURL: "9sm5xK",
+    longURL: "http://www.google.com",
+    userID: "user1RandomID"
+  }
 };
+
+Object.keys(urlDatabase)
+
+// Object.keys --> map --> filter (reduce)
 
 const users = { 
   "userRandomID": {
@@ -45,15 +57,21 @@ app.get("/urls", (req, res) => {
 
 //Route: create new page
 app.get("/urls/new", (req, res) => {
-  let templateVars = { user: users[req.cookies["user_id"]] }
-  res.render("urls_new", templateVars);
+  if(!users[req.cookies["user_id"]]){
+    console.log("redirected to login");
+    res.redirect("/login");
+  } else {
+    let templateVars = { user: users[req.cookies["user_id"]] }
+    console.log("rendered new page");
+    res.render("urls_new", templateVars);
+  }
 });
 
 //Route: detail + update page
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { 
+  let templateVars = {
     shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    longURL: urlDatabase[req.params.id].longURL,
     user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
@@ -71,7 +89,7 @@ app.get("/login", (req, res) => {
 
 //Redirect: to actual page (longURL)
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
+  let longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
@@ -81,13 +99,17 @@ app.get("/u/:shortURL", (req, res) => {
 //Assigns random id to longURL
 app.post("/urls", (req, res) => {
   let uid = generateRandomString();
-  urlDatabase[uid] = req.body.longURL;
-  res.redirect(`http://localhost:8080/urls/${uid}`);
+  urlDatabase[uid] = {
+    shortURL: uid,
+    longURL: req.body.longURL,
+    userID: ""
+  }
+  res.redirect("/urls");
 });
 
 //Updates the longURL in database
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
+  urlDatabase[req.params.id].longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
