@@ -35,7 +35,13 @@ const users = {
 
 //Helper functions
 function generateRandomString() {
-  return Math.floor((1 + Math.random()) * 0x100000).toString(16);
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < 5; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  
+  return text;
 }
 
 function urlsForUser(id) {
