@@ -1,8 +1,8 @@
-#TinyApp Project
+# TinyApp Project
 
 TinyApp is a full stack web application built with Node and Express that allows us to shorten long URLs.
 
-##Final Product
+## Final Product
 
 !["Screenshot of URLs page"](https://github.com/hli30/Week2Project_TinyApp/blob/master/docs/urls-page.png)
 !["Screenshot of register page"](https://github.com/hli30/Week2Project_TinyApp/blob/master/docs/register-page.png)
