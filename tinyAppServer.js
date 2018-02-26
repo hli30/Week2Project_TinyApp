@@ -61,19 +61,31 @@ app.use(cookieSession({
   name: "session",
   keys: ["tinyAppSessionSecret"],
   maxAge: 24 * 60 * 60 * 1000
-}))
+}));
 
 /*****
  * Handle GET Requests
  *****/
 //Route: home page
+app.get("/", (req, res) => {
+  if(!users[req.session.user_id]){
+    res.redirect("/login");
+  } else {
+    res.redirect("/urls");
+  }
+});
+
 app.get("/urls", (req, res) => {
-  let templateVars = {
-    urls: urlDatabase,
-    user: users[req.session.user_id],
-    currentUserURLs: urlsForUser(req.session.user_id)
-  };
-  res.render("urls_index", templateVars);
+  if(!users[req.session.user_id]) {
+    res.status(403).send("Please log in first!");
+  }else {
+    let templateVars = {
+      urls: urlDatabase,
+      user: users[req.session.user_id],
+      currentUserURLs: urlsForUser(req.session.user_id)
+    };
+    res.render("urls_index", templateVars);
+  }
 });
 
 //Route: create new page
@@ -88,6 +100,15 @@ app.get("/urls/new", (req, res) => {
 
 //Route: detail + update page
 app.get("/urls/:id", (req, res) => {
+  
+  if(!users[req.session.user_id]) {
+    res.status(403).send("Please log in first!");
+  }
+
+  if(urlDatabase[req.params.id].userID !== req.session.user_id) {
+    res.status(403).send("You do not own this shortURL!");
+  }
+  
   let templateVars = {
     shortURL: req.params.id,
     longURL: urlDatabase[req.params.id].longURL,
@@ -98,16 +119,26 @@ app.get("/urls/:id", (req, res) => {
 
 //Route: register page
 app.get("/register", (req, res) => {
-  res.render("urls_register");
+  if(!users[req.session.user_id]){
+    res.render("urls_register");
+  }
+  res.redirect("/urls");
 });
 
 //Route: login page
 app.get("/login", (req, res) => {
-  res.render("urls_login");
+  if(!users[req.session.user_id]){
+    res.render("urls_login");
+  }
+  res.redirect("/urls");
 });
 
 //Redirect: to actual page (longURL)
 app.get("/u/:shortURL", (req, res) => {
+  if(!urlDatabase[req.params.shortURL]) {
+    res.status(404).send("This shortURL does not exist!");
+  }
+
   let longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
@@ -117,6 +148,9 @@ app.get("/u/:shortURL", (req, res) => {
  ******/
 //Assigns random id to longURL
 app.post("/urls", (req, res) => {
+  if(!users[req.session.user_id]) {
+    res.status(403).send("Please log in first!");
+  }
   let uid = generateRandomString();
   urlDatabase[uid] = {
     shortURL: uid,
@@ -128,12 +162,25 @@ app.post("/urls", (req, res) => {
 
 //Updates the longURL in database
 app.post("/urls/:id", (req, res) => {
+  if(!users[req.session.user_id]){
+    res.status(403).send("Please log in first!");
+  }
+  if(urlDatabase[req.params.id].userID !== req.session.user_id) {
+    res.status(403).send("You do not own this shortURL!");
+  }
   urlDatabase[req.params.id].longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
 //Delete url from database
 app.post("/urls/:id/delete", (req, res) => {
+  if(!users[req.session.user_id]) {
+    res.status(403).send("Please log in first!");
+  }
+
+  if(urlDatabase[req.params.id].userID !== req.session.user_id) {
+    res.status(403).send("You do not own this shortURL!");
+  }
   delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
@@ -169,8 +216,8 @@ app.post("/logout", (req, res) => {
 
 //Registers user and set cookie to radomly generated user_id
 app.post("/register", (req, res) => {
-  if(!req.body.email) {
-    res.status(400).send("Empty Email!");
+  if(!req.body.email || !req.body.password) {
+    res.status(400).send("Empty Email and/or password!");
   }
 
   for(let user in users) {
