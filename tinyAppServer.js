@@ -66,7 +66,6 @@ app.use(cookieSession({
 /*****
  * Handle GET Requests
  *****/
-//Route: home page
 app.get("/", (req, res) => {
   if(!users[req.session.user_id]){
     res.redirect("/login");
@@ -88,7 +87,6 @@ app.get("/urls", (req, res) => {
   }
 });
 
-//Route: create new page
 app.get("/urls/new", (req, res) => {
   if(!users[req.session.user_id]){
     res.redirect("/login");
@@ -98,7 +96,6 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-//Route: detail + update page
 app.get("/urls/:id", (req, res) => {
   
   if(!users[req.session.user_id]) {
@@ -117,7 +114,6 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-//Route: register page
 app.get("/register", (req, res) => {
   if(!users[req.session.user_id]){
     res.render("urls_register");
@@ -125,7 +121,6 @@ app.get("/register", (req, res) => {
   res.redirect("/urls");
 });
 
-//Route: login page
 app.get("/login", (req, res) => {
   if(!users[req.session.user_id]){
     res.render("urls_login");
@@ -133,7 +128,6 @@ app.get("/login", (req, res) => {
   res.redirect("/urls");
 });
 
-//Redirect: to actual page (longURL)
 app.get("/u/:shortURL", (req, res) => {
   if(!urlDatabase[req.params.shortURL]) {
     res.status(404).send("This shortURL does not exist!");
@@ -146,7 +140,6 @@ app.get("/u/:shortURL", (req, res) => {
 /******
  * Handle POST Requests
  ******/
-//Assigns random id to longURL
 app.post("/urls", (req, res) => {
   if(!users[req.session.user_id]) {
     res.status(403).send("Please log in first!");
@@ -160,7 +153,6 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls");
 });
 
-//Updates the longURL in database
 app.post("/urls/:id", (req, res) => {
   if(!users[req.session.user_id]){
     res.status(403).send("Please log in first!");
@@ -172,12 +164,10 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-//Delete url from database
 app.post("/urls/:id/delete", (req, res) => {
   if(!users[req.session.user_id]) {
     res.status(403).send("Please log in first!");
   }
-
   if(urlDatabase[req.params.id].userID !== req.session.user_id) {
     res.status(403).send("You do not own this shortURL!");
   }
@@ -185,7 +175,6 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-//Login and set cookie
 app.post("/login", (req, res) => {
   let currentUser;
   //find the user
@@ -208,13 +197,11 @@ app.post("/login", (req, res) => {
   }
 });
 
-//Logout and removes cookie 
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
 
-//Registers user and set cookie to radomly generated user_id
 app.post("/register", (req, res) => {
   if(!req.body.email || !req.body.password) {
     res.status(400).send("Empty Email and/or password!");
@@ -238,7 +225,6 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
-//Listen
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
